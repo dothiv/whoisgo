@@ -15,16 +15,22 @@ import (
 )
 
 func whoisQuery(whoisServer string, domain string) string {
+	// Connect
 	conn, connErr := net.Dial("tcp", whoisServer+":43")
 	if connErr != nil {
 		fmt.Fprintln(os.Stderr, connErr.Error())
 		os.Exit(1)
 	}
+	defer conn.Close()
+
+	// Send query
 	_, writeErr := conn.Write([]byte(domain + "\n"))
 	if writeErr != nil {
 		fmt.Fprintln(os.Stderr, writeErr.Error())
 		os.Exit(2)
 	}
+
+	// Read response
 	var bytesRead int
 	var status [1024]byte
 	var readErr error
