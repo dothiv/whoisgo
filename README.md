@@ -1,4 +1,6 @@
 whois-go
 ========
 
-Query WHOIS servers
+Query WHOIS servers.
+
+Usage: whois-go whois-server domainname
