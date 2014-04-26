@@ -12,11 +12,12 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 )
 
 func whoisQuery(whoisServer string, domain string) (response string, err error) {
 	// Connect
-	conn, connErr := net.Dial("tcp", whoisServer+":43")
+	conn, connErr := net.DialTimeout("tcp", whoisServer+":43", time.Duration(3)*time.Second)
 	if connErr != nil {
 		err = connErr
 		return
