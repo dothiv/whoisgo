@@ -14,39 +14,38 @@ import (
 	"os"
 )
 
-func whoisQuery(whoisServer string, domain string) string {
+func whoisQuery(whoisServer string, domain string) (response string, err error) {
 	// Connect
 	conn, connErr := net.Dial("tcp", whoisServer+":43")
 	if connErr != nil {
-		fmt.Fprintln(os.Stderr, connErr.Error())
-		os.Exit(1)
+		err = connErr
+		return
 	}
 	defer conn.Close()
 
 	// Send query
 	_, writeErr := conn.Write([]byte(domain + "\n"))
 	if writeErr != nil {
-		fmt.Fprintln(os.Stderr, writeErr.Error())
-		os.Exit(2)
+		err = writeErr
+		return
 	}
 
 	// Read response
 	var bytesRead int
 	var status [1024]byte
 	var readErr error
-	var response string
 	for {
 		bytesRead, readErr = conn.Read(status[0:])
 		if readErr != nil {
 			if readErr == io.EOF {
 				break
 			}
-			fmt.Fprintln(os.Stderr, readErr.Error())
-			os.Exit(3)
+			err = readErr
+			return
 		}
 		response += string(status[:bytesRead])
 	}
-	return response
+	return
 }
 
 var Usage = func() {
@@ -60,5 +59,10 @@ func main() {
 		os.Exit(0)
 	}
 	fmt.Fprintf(os.Stdout, "Querying %s on %s\n", os.Args[1], os.Args[2])
-	fmt.Fprintf(os.Stdout, whoisQuery(os.Args[1], os.Args[2]))
+	response, queryError := whoisQuery(os.Args[1], os.Args[2])
+	if queryError != nil {
+		fmt.Fprintln(os.Stderr, queryError.Error())
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stdout, response)
 }
